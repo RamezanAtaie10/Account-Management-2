@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مدیریت حساب‌ها</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0A0D12; --surface:#1c2537; --surface2:#242f47; --border:#2c3750;
+    --text:#f0f2f6; --dim:#8993ab; --blue:#4a8ce8; --red:#ef6a60; --green:#4fc785;
+  }
+  * { box-sizing: border-box; }
+  html { background:var(--bg); overscroll-behavior-y:contain; }
+  body { margin:0; font-family:'Vazirmatn',sans-serif; background:var(--bg); color:var(--text); overscroll-behavior-y:contain; min-height:100vh; }
+  #app { max-width:760px; margin:0 auto; padding:14px 12px 60px; min-height:100vh; }
+  .kicker { font-size:12px; color:var(--blue); font-weight:600; }
+  .h1 { font-size:19px; font-weight:800; margin:2px 0 0; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; }
+  .input, select { width:100%; font-family:inherit; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:14px; padding:14px 16px; font-size:14.5px; }
+  .input::placeholder { color:#6b7690; }
+  .input[type="number"] { text-align:right; }
+  .input:focus, select:focus { outline:2px solid var(--blue); }
+  .label { display:block; font-size:12px; color:var(--dim); margin-bottom:4px; }
+  .btn { font-family:inherit; border:none; border-radius:14px; padding:14px 16px; font-size:14.5px; font-weight:700; cursor:pointer; }
+  .btn:active { opacity:.8; }
+  .btn-blue { background:#2f5fdb; color:#fff; }
+  .btn-red { background:var(--red); color:#fff; }
+  .btn-green { background:var(--green); color:#06210f; }
+  .btn-ghost { background:transparent; color:var(--dim); border:1px solid var(--border); }
+  .btn-neutral { background:var(--surface2); color:var(--text); }
+  .add-cust-title { margin:0 0 14px; font-size:19px; font-weight:800; }
+  .photo-upload-row { display:flex; align-items:center; gap:10px; padding:8px 4px; cursor:pointer; justify-content:flex-end; }
+  .photo-upload-label { font-size:13.5px; color:var(--blue); font-weight:600; }
+  .avatar-img { border-radius:50%; object-fit:cover; flex-shrink:0; }
+  .avatar-fallback { border-radius:50%; background:var(--surface2); color:var(--dim); display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; border:1px solid var(--border); }
+  .pin-toggle-row { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:10px 4px; cursor:pointer; }
+  .pin-toggle-row input[type="checkbox"] { width:19px; height:19px; accent-color:var(--blue); cursor:pointer; }
+  .pin-toggle-label { font-size:14px; color:var(--text); font-weight:600; }
+  .err { color:var(--red); font-size:13.5px; margin-top:10px; padding:10px 12px; background:rgba(226,104,90,0.12); border:1px solid var(--red); border-radius:6px; line-height:1.6; }
+  .ok { color:var(--green); font-size:13.5px; margin-top:10px; padding:10px 12px; background:rgba(95,191,122,0.12); border:1px solid var(--green); border-radius:6px; }
+  .auth-wrap { max-width:380px; margin:40px auto; }
+  .form-grid { display:grid; gap:10px; }
+  .form-actions { display:flex; gap:8px; margin-top:12px; }
+  .tabs { display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap; }
+  .tabs .tab { min-width:28%; }
+  .tab { flex:1; text-align:center; padding:8px 4px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:700; color:var(--dim); border:1px solid var(--border); background:transparent; }
+  .tab.active { background:var(--blue); border-color:var(--blue); color:#fff; }
+  .stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px; }
+  .stat-card { background:linear-gradient(135deg,#1e3a8a,#1e2f6b 60%,#16214f); border:1px solid #2c4494; border-radius:12px; padding:10px; cursor:pointer; }
+  .stat-card.active { border-color:#6aa6f5; box-shadow:0 0 0 1px #6aa6f5; }
+  .stat-title { font-size:12px; font-weight:800; color:#9fc0f7; text-align:center; margin-bottom:4px; }
+  .stat-big { text-align:center; font-size:24px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .stat-row { display:flex; justify-content:space-between; font-size:11px; color:#a9bde3; padding:1px 0; }
+  .stat-row b { color:#fff; font-size:13px; }
+  .stat-row.debt b { color:var(--red); }
+  .stat-row.credit b { color:var(--green); }
+  .search-row { display:flex; gap:8px; margin-bottom:8px; }
+  .filter-row { display:flex; gap:8px; margin-bottom:10px; }
+  .filter-btn { flex:1; padding:7px; border-radius:6px; border:1px solid var(--border); background:transparent; color:var(--dim); font-family:inherit; font-size:12.5px; cursor:pointer; }
+  .filter-btn.active { background:var(--surface2); color:var(--text); border-color:var(--blue); }
+  .filter-btn.debtor-btn { color:var(--red); border-color:rgba(226,104,90,0.4); }
+  .filter-btn.debtor-btn.active { border-color:var(--red); background:rgba(226,104,90,0.12); }
+  .filter-btn.creditor-btn { color:var(--green); border-color:rgba(95,191,122,0.4); }
+  .filter-btn.creditor-btn.active { border-color:var(--green); background:rgba(95,191,122,0.12); }
+  .cust-row { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:10px; flex-wrap:wrap; cursor:pointer; }
+  .cust-row.is-pinned { border-color:var(--blue); }
+  .cust-row:active { border-color:var(--blue); }
+  .cust-main { flex:1; min-width:110px; }
+  .cust-name { font-weight:700; font-size:17px; }
+  .cust-sub { font-size:13px; color:var(--dim); margin-top:4px; }
+  .cust-badges { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+  #toast-container { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:500; display:flex; flex-direction:column; gap:10px; align-items:center; pointer-events:none; }
+  .toast-msg { background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:20px; padding:22px 30px; box-shadow:0 12px 32px rgba(0,0,0,0.55); opacity:1; transition:opacity .35s ease, transform .35s ease; display:flex; flex-direction:column; align-items:center; gap:10px; min-width:180px; }
+  .toast-check { width:52px; height:52px; border-radius:50%; background:var(--green); color:#06210f; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:900; }
+  .toast-text { font-size:14.5px; font-weight:700; text-align:center; white-space:nowrap; }
+  .toast-hide { opacity:0; transform:scale(0.9); }
+  .pin-btn { background:none; border:none; padding:2px 4px; line-height:1; flex-shrink:0; color:var(--blue); display:flex; align-items:center; cursor:default; }
+  .pin-btn.pinned { opacity:1; }
+  .cust-balances-stack { margin-top:6px; display:flex; flex-direction:column; gap:4px; }
+  .cust-balances-stack .bal-line { display:flex; justify-content:space-between; align-items:center; font-size:16px; font-weight:800; }
+  .cust-balances-stack .bal-line.debt b { color:var(--red); }
+  .cust-balances-stack .bal-line.credit b { color:var(--green); }
+  .cust-balances-stack .bal-line .cur-label { color:var(--dim); font-weight:500; }
+  .cust-balances-card { margin-bottom:16px; display:flex; flex-direction:column; gap:8px; background:linear-gradient(135deg,#0d1a4a 0%,#0a1030 55%,#060915 100%); border-color:#1a2a5c; }
+  .cust-balances-card .bal-line { display:flex; justify-content:space-between; align-items:center; font-size:18px; font-weight:800; padding:3px 0; }
+  .cust-balances-card .bal-line.debt b { color:var(--red); }
+  .cust-balances-card .bal-line.credit b { color:var(--green); }
+  .cust-balances-card .bal-line .cur-label { color:var(--dim); font-weight:600; }
+  .badge { font-size:13px; font-weight:700; border-radius:999px; padding:8px 16px; white-space:nowrap; }
+  .badge.debt { background:#4a2530; color:#ff8f85; }
+  .badge.credit { background:#1f4a3a; color:#6fe3a3; }
+  .badge.settled { background:rgba(137,147,171,0.15); color:var(--dim); }
+  .cust-actions { display:flex; gap:6px; }
+  .icon-btn { border:none; border-radius:6px; padding:11px 16px; font-family:inherit; font-weight:800; font-size:13.5px; cursor:pointer; }
+  .icon-btn.edit { background:var(--green); color:#06210f; }
+  .icon-btn.del { background:var(--red); color:#fff; }
+  .back { background:none; border:none; color:var(--dim); font-family:inherit; font-size:14px; cursor:pointer; margin-bottom:12px; padding:0; }
+  .cust-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; flex-wrap:wrap; }
+  .cust-top-left { display:flex; gap:8px; }
+  .cust-top-right { display:flex; align-items:center; gap:10px; }
+  .cust-name-big { font-size:19px; font-weight:800; }
+  .back-arrow { background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:8px; width:36px; height:36px; font-size:16px; cursor:pointer; }
+  .cust-header h2 { margin:0 0 4px; font-size:20px; font-weight:800; }
+  .statement-link { color:var(--blue); font-size:13.5px; cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:14px; }
+  .bal-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .bal-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center; }
+  .bal-card .cur { font-size:11.5px; color:var(--dim); }
+  .bal-card .amt { font-size:19px; font-weight:800; margin-top:4px; }
+  .amt.debt { color:var(--red); } .amt.credit { color:var(--green); } .amt.settled { color:var(--dim); }
+  .tx-type-row { display:flex; gap:10px; margin-bottom:14px; }
+  .tx-type-btn { flex:1; padding:14px; border-radius:8px; border:2px solid var(--border); background:var(--surface); color:var(--dim); font-family:inherit; font-weight:800; font-size:14.5px; cursor:pointer; }
+  .tx-type-btn.withdraw.selected { background:rgba(226,104,90,0.15); border-color:var(--red); color:var(--red); }
+  .tx-type-btn.deposit.selected { background:rgba(95,191,122,0.15); border-color:var(--green); color:var(--green); }
+  .words-hint { font-size:12px; color:var(--dim); margin-top:4px; min-height:16px; }
+  .tx-row-ref { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; background:var(--surface); border-radius:8px; padding:12px; margin-bottom:8px; border-right:4px solid var(--red); }
+  .tx-row-ref.deposit { border-right-color:var(--green); }
+  .tx-right { flex:1; min-width:0; }
+  .tx-amt-line { font-weight:800; font-size:15px; display:flex; align-items:center; gap:6px; color:var(--text); }
+  .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .dot.withdraw { background:var(--red); } .dot.deposit { background:var(--green); }
+  .tx-meta { font-size:12px; color:var(--dim); margin-top:3px; }
+  .tx-links { margin-top:6px; display:flex; gap:14px; }
+  .tlink { font-size:13px; font-weight:700; cursor:pointer; padding:4px 2px; }
+  .tlink.edit { color:var(--green); } .tlink.del { color:var(--red); }
+  .cat-chip { font-size:11.5px; font-weight:700; border-radius:5px; padding:4px 9px; white-space:nowrap; height:fit-content; }
+  .cat-chip.withdraw { background:rgba(226,104,90,0.18); color:var(--red); }
+  .cat-chip.deposit { background:rgba(95,191,122,0.18); color:var(--green); }
+  .tx-type-chip { display:inline-block; font-size:15px; font-weight:800; border-radius:999px; padding:8px 20px; margin-bottom:10px; }
+  .tx-type-chip.withdraw { background:rgba(226,104,90,0.18); color:var(--red); }
+  .tx-type-chip.deposit { background:rgba(95,191,122,0.18); color:var(--green); }
+  .tx-dotted-row { display:flex; align-items:baseline; gap:6px; font-size:13.5px; margin-bottom:4px; }
+  .tdr-label { color:var(--dim); flex-shrink:0; }
+  .tdr-fill { flex:1; border-bottom:2px dotted var(--border); margin-bottom:3px; }
+  .tdr-value { font-weight:800; flex-shrink:0; font-size:16px; }
+  .tdr-value.withdraw { color:var(--red); }
+  .tdr-value.deposit { color:var(--green); }
+  .tx-row-ref.just-added { animation: tx-flash 2.2s ease; }
+  @keyframes tx-flash { 0%{ box-shadow:0 0 0 2px var(--blue); background:var(--surface2); } 100%{ box-shadow:0 0 0 0 transparent; background:var(--surface); } }
+  .empty { text-align:center; color:var(--dim); padding:20px; font-size:13.5px; }
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
+  .modal-box { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:20px; max-width:420px; width:100%; max-height:85vh; overflow-y:auto; }
+  .pin-input { text-align:center; letter-spacing:10px; font-size:22px; }
+  .section-head { display:flex; justify-content:space-between; align-items:center; margin:20px 0 12px; }
+  .section-head h3 { margin:0; font-size:15px; }
+  .backup-row { display:flex; gap:8px; margin-top:16px; }
+  .top-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  .top-row.centered { justify-content:space-between; }
+  .top-center { text-align:center; flex:1; }
+  .top-side-btn { flex-shrink:0; min-width:60px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ---------------- storage ---------------- */
+const DB_KEY = 'account-manager-db-v1';
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    return raw ? JSON.parse(raw) : { accounts: {} };
+  } catch (e) { return { accounts: {} }; }
+}
+function saveDB(db) {
+  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); return true; }
+  catch (e) { return false; }
+}
+let DB = loadDB();
+let session = null; // username
+const REMEMBER_KEY = 'account-manager-remembered-user';
+function getRememberedUsername(){ try { return localStorage.getItem(REMEMBER_KEY); } catch(e){ return null; } }
+function setRememberedUsername(u){ try { localStorage.setItem(REMEMBER_KEY, u); } catch(e){} }
+function clearRememberedUsername(){ try { localStorage.removeItem(REMEMBER_KEY); } catch(e){} }
+
+/* ---------------- helpers ---------------- */
+const CURRENCIES = [ {code:'AFN', label:'افغانی'}, {code:'TMN', label:'تومان'}, {code:'USD', label:'دالر'}, {code:'EUR', label:'یورو'}, {code:'TRY', label:'لیر'}, {code:'PKR', label:'کلدار'} ];
+const STAT_ORDER = ['AFN','TMN','USD','EUR','TRY','PKR'];
+function curLabel(code){ const c = CURRENCIES.find(x=>x.code===code); return c ? c.label : code; }
+function fmt(n){ return (Number(n)||0).toLocaleString('fa-IR'); }
+function fmtMoney(n, code){ return fmt(n) + ' ' + curLabel(code); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function showToast(message){
+  let container = document.getElementById('toast-container');
+  if(!container){
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast-msg';
+  toast.innerHTML = '<div class="toast-check">✓</div><div class="toast-text"></div>';
+  toast.querySelector('.toast-text').textContent = message;
+  container.appendChild(toast);
+  setTimeout(()=>{ toast.classList.add('toast-hide'); }, 1600);
+  setTimeout(()=>{ toast.remove(); }, 2100);
+}
+function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str==null?'':String(str); return d.innerHTML; }
+function simpleHash(str){ let h=0; for(let i=0;i<str.length;i++) h=(h*31+str.charCodeAt(i))>>>0; return h.toString(36); }
+function nowLocalInput(){
+  const d = new Date(); const p = x => String(x).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function toJalaliNumeric(d){
+  try {
+    const parts = new Intl.DateTimeFormat('en-US-u-ca-persian',{year:'numeric',month:'numeric',day:'numeric'}).formatToParts(d);
+    const map = {};
+    parts.forEach(p => { map[p.type] = p.value; });
+    return `${map.year}/${map.month}/${map.day}`;
+  } catch(e){ return ''; }
+}
+function getJalaliParts(d){
+  try {
+    const parts = new Intl.DateTimeFormat('en-US-u-ca-persian',{year:'numeric',month:'numeric',day:'numeric'}).formatToParts(d);
+    const map = {};
+    parts.forEach(p => { map[p.type] = p.value; });
+    return { jy: parseInt(map.year,10), jm: parseInt(map.month,10), jd: parseInt(map.day,10) };
+  } catch(e){ return { jy:1404, jm:1, jd:1 }; }
+}
+function jalaliToGregorian(jy, jm, jd){
+  jy = parseInt(jy,10); jm = parseInt(jm,10); jd = parseInt(jd,10);
+  let gy;
+  if (jy > 979) { gy = 1600; jy -= 979; } else { gy = 621; }
+  let days = (365*jy) + (Math.floor(jy/33)*8) + Math.floor(((jy%33)+3)/4) + 78 + jd + ((jm<7) ? (jm-1)*31 : ((jm-7)*30)+186);
+  gy += 400*Math.floor(days/146097);
+  days %= 146097;
+  if (days > 36524) {
+    gy += 100*Math.floor(--days/36524);
+    days %= 36524;
+    if (days >= 365) days++;
+  }
+  gy += 4*Math.floor(days/1461);
+  days %= 1461;
+  if (days > 365) {
+    gy += Math.floor((days-1)/365);
+    days = (days-1)%365;
+  }
+  let gd = days + 1;
+  const isLeap = (gy%4===0 && gy%100!==0) || (gy%400===0);
+  const salA = [0,31, isLeap?29:28, 31,30,31,30,31,31,30,31,30,31];
+  let gm;
+  for (gm = 1; gm <= 12; gm++) {
+    const v = salA[gm];
+    if (gd <= v) break;
+    gd -= v;
+  }
+  return { gy, gm, gd };
+}
+function jalaliDateTimeToISO(jy, jm, jd, hh, mm){
+  const { gy, gm, gd } = jalaliToGregorian(jy, jm, jd);
+  const d = new Date(gy, gm-1, gd, parseInt(hh,10)||0, parseInt(mm,10)||0, 0, 0);
+  return d.toISOString();
+}
+function fmtDateTime(iso){
+  if(!iso) return '';
+  try {
+    const d = new Date(iso);
+    const datePart = toJalaliNumeric(d);
+    const p = x => String(x).padStart(2,'0');
+    return `${datePart} - ${p(d.getHours())}:${p(d.getMinutes())}`;
+  } catch(e){ return iso; }
+}
+/* Persian number to words */
+const YEKAN=["","یک","دو","سه","چهار","پنج","شش","هفت","هشت","نه"];
+const DAHYEK=["ده","یازده","دوازده","سیزده","چهارده","پانزده","شانزده","هفده","هجده","نوزده"];
+const DAHGAN=["","ده","بیست","سی","چهل","پنجاه","شصت","هفتاد","هشتاد","نود"];
+const SADGAN=["","صد","دویست","سیصد","چهارصد","پانصد","ششصد","هفتصد","هشتصد","نهصد"];
+const MAGN=["","هزار","میلیون","میلیارد"];
+function threeDigitWords(n){
+  const parts=[]; const s=Math.floor(n/100); const rem=n%100;
+  if(s) parts.push(SADGAN[s]);
+  if(rem){
+    if(rem<10) parts.push(YEKAN[rem]);
+    else if(rem<20) parts.push(DAHYEK[rem-10]);
+    else { const d=Math.floor(rem/10), y=rem%10; parts.push(y ? DAHGAN[d]+' و '+YEKAN[y] : DAHGAN[d]); }
+  }
+  return parts.join(' و ');
+}
+function numToWordsFa(num){
+  num = Math.floor(Math.abs(Number(num)||0));
+  if(num===0) return 'صفر';
+  const groups=[]; let n=num;
+  while(n>0){ groups.push(n%1000); n=Math.floor(n/1000); }
+  const parts=[];
+  for(let i=groups.length-1;i>=0;i--){
+    if(groups[i]===0) continue;
+    let w=threeDigitWords(groups[i]);
+    if(i>0) w += ' ' + MAGN[i];
+    parts.push(w);
+  }
+  return parts.join(' و ');
+}
+function amountWords(n, code){ return numToWordsFa(n) + ' ' + curLabel(code); }
+
+/* ---------------- ui state ---------------- */
+let ui = {
+  screen: 'auth', authMode: 'login',
+  activeCurrency: 'AFN', search: '', statusFilter: 'all',
+  showAddCustomer: false, editingCustomerId: null, pinModalCustomerId: null, pinInput: '', pinError: '',
+  selectedCustomerId: null, custCurrency: 'AFN', txType: null, editingTxId: null,
+  showStatement: false, txShowCount: 50, authError: '', importError: '', importOk: '', showBackupPanel: false, txTypeFilter: 'all', confirmDeleteTxId: null, justAddedTxId: null, showSettings: false, settingsError: '', settingsOk: '', pendingPhoto: null, pendingEditPhoto: null
+};
+function readAndCompressPhoto(file, callback){
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const size = 160;
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size/img.width, size/img.height);
+      const w = img.width*scale, h = img.height*scale;
+      ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.72));
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function onNewCustomerPhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  readAndCompressPhoto(file, (dataUrl) => {
+    ui.pendingPhoto = dataUrl;
+    const row = input.closest('.photo-upload-row');
+    if(row){
+      row.querySelector('.avatar-img, .avatar-fallback')?.remove();
+      row.insertAdjacentHTML('afterbegin', avatarHtml({photo:dataUrl}, 44));
+      row.querySelector('.photo-upload-label').textContent = 'تغییر عکس پروفایل';
+    }
+  });
+}
+function onEditCustomerPhoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  readAndCompressPhoto(file, (dataUrl) => {
+    ui.pendingEditPhoto = dataUrl;
+    const row = input.closest('.photo-upload-row');
+    if(row){
+      row.querySelector('.avatar-img, .avatar-fallback')?.remove();
+      row.insertAdjacentHTML('afterbegin', avatarHtml({photo:dataUrl}, 44));
+      row.querySelector('.photo-upload-label').textContent = 'تغییر عکس پروفایل';
+    }
+  });
+}
+function avatarHtml(c, size){
+  if(c && c.photo) return `<img src="${c.photo}" class="avatar-img" style="width:${size}px;height:${size}px;">`;
+  const letter = c && c.name ? c.name.trim().charAt(0) : '؟';
+  return `<span class="avatar-fallback" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.42)}px;">${escapeHtml(letter)}</span>`;
+}
+function acc(){ return session ? DB.accounts[session] : null; }
+
+/* ---------------- auth ---------------- */
+function doSignup(){
+  const username = (val('su-username')||'').trim().toLowerCase().replace(/\s+/g,'_');
+  const pin = val('su-pin')||'';
+  const email = (val('su-email')||'').trim();
+  ui.authError = '';
+  if(!username){ ui.authError='نام کاربری را وارد کنید.'; render(); return; }
+  if(!/^\d{4}$/.test(pin)){ ui.authError='پین باید دقیقاً ۴ رقم باشد.'; render(); return; }
+  if(DB.accounts[username]){ ui.authError='این نام کاربری قبلاً روی همین دستگاه ساخته شده. وارد شوید یا نام دیگری انتخاب کنید.'; render(); return; }
+  DB.accounts[username] = { pin, email, customers: [], transactions: [] };
+  if(!saveDB(DB)){ ui.authError='ذخیره‌سازی با مشکل مواجه شد. حافظه مرورگر را بررسی کنید.'; render(); return; }
+  session = username;
+  setRememberedUsername(username);
+  ui.screen = 'home';
+  render();
+}
+function doLogin(){
+  const remembered = getRememberedUsername();
+  const username = remembered || (val('li-username')||'').trim().toLowerCase().replace(/\s+/g,'_');
+  const pin = val('li-pin')||'';
+  ui.authError = '';
+  const a = DB.accounts[username];
+  if(!a){ ui.authError='حسابی با این نام کاربری روی این دستگاه پیدا نشد. ثبت‌نام کنید.'; render(); return; }
+  if(a.pin !== pin){ ui.authError='پین اشتباه است.'; render(); return; }
+  session = username;
+  setRememberedUsername(username);
+  ui.screen = 'home';
+  render();
+}
+function switchUser(){
+  clearRememberedUsername();
+  ui.authError = '';
+  render();
+}
+function logout(){
+  session = null; ui = { ...ui, screen:'auth', authMode:'login', authError:'', selectedCustomerId:null };
+  render();
+}
+
+/* ---------------- settings ---------------- */
+function changeUsername(){
+  const a = acc();
+  const newUsername = (val('set-username')||'').trim().toLowerCase().replace(/\s+/g,'_');
+  ui.settingsError = ''; ui.settingsOk = '';
+  if(!newUsername){ ui.settingsError='نام کاربری جدید را وارد کنید.'; render(); return; }
+  if(newUsername === session){ ui.settingsError='این همان نام کاربری فعلی است.'; render(); return; }
+  if(DB.accounts[newUsername]){ ui.settingsError='این نام کاربری قبلاً روی این دستگاه استفاده شده.'; render(); return; }
+  DB.accounts[newUsername] = a;
+  delete DB.accounts[session];
+  if(!saveDB(DB)){ ui.settingsError='ذخیره‌سازی با مشکل مواجه شد.'; render(); return; }
+  session = newUsername;
+  setRememberedUsername(newUsername);
+  ui.settingsOk = 'نام کاربری با موفقیت تغییر کرد.';
+  render();
+  showToast('نام کاربری با موفقیت تغییر کرد');
+}
+function changePin(){
+  const a = acc();
+  const newPin = val('set-pin')||'';
+  const confirmPin = val('set-pin-confirm')||'';
+  ui.settingsError = ''; ui.settingsOk = '';
+  if(!/^\d{4}$/.test(newPin)){ ui.settingsError='پین باید دقیقاً ۴ رقم باشد.'; render(); return; }
+  if(newPin !== confirmPin){ ui.settingsError='پین و تکرار آن یکسان نیستند.'; render(); return; }
+  a.pin = newPin;
+  if(!saveDB(DB)){ ui.settingsError='ذخیره‌سازی با مشکل مواجه شد.'; render(); return; }
+  ui.settingsOk = 'پین با موفقیت تغییر کرد.';
+  render();
+  showToast('پین با موفقیت تغییر کرد');
+}
+function b64encode(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function b64decode(str){ const bin = atob(str); const arr = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return arr; }
+async function enableBiometric(){
+  ui.settingsError=''; ui.settingsOk='';
+  if(!window.isSecureContext || !navigator.credentials || !window.PublicKeyCredential){
+    ui.settingsError = 'قفل اثرانگشت فقط روی لینک آنلاین (HTTPS) کار می‌کند، نه فایل محلی.';
+    render(); return;
+  }
+  try{
+    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if(!available){ ui.settingsError='این گوشی/مرورگر از قفل اثرانگشت پشتیبانی نمی‌کند.'; render(); return; }
+    const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+    const userId = new Uint8Array(16); crypto.getRandomValues(userId);
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge, rp: { name: 'مدیریت حساب‌ها' },
+      user: { id: userId, name: session, displayName: session },
+      pubKeyCredParams: [{alg:-7,type:'public-key'},{alg:-257,type:'public-key'}],
+      authenticatorSelection: { authenticatorAttachment:'platform', userVerification:'required' },
+      timeout: 60000,
+    }});
+    const a = acc();
+    a.biometricCredId = b64encode(cred.rawId);
+    saveDB(DB);
+    ui.settingsOk = 'قفل اثرانگشت فعال شد.';
+    render();
+    showToast('قفل اثرانگشت فعال شد');
+  } catch(e){
+    ui.settingsError = 'فعال‌سازی اثرانگشت لغو شد یا ناموفق بود.';
+    render();
+  }
+}
+function disableBiometric(){
+  const a = acc();
+  delete a.biometricCredId;
+  saveDB(DB);
+  ui.settingsOk = 'قفل اثرانگشت غیرفعال شد.';
+  render();
+  showToast('قفل اثرانگشت غیرفعال شد');
+}
+async function loginWithBiometric(){
+  const remembered = getRememberedUsername();
+  const a = DB.accounts[remembered];
+  if(!a || !a.biometricCredId) return;
+  try{
+    const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+    await navigator.credentials.get({ publicKey: {
+      challenge,
+      allowCredentials: [{ id: b64decode(a.biometricCredId), type:'public-key' }],
+      userVerification: 'required', timeout: 60000,
+    }});
+    session = remembered;
+    ui.screen = 'home';
+    render();
+  } catch(e){
+    ui.authError = 'ورود با اثرانگشت ناموفق بود. پین را وارد کنید.';
+    render();
+  }
+}
+function val(id){ const el = document.getElementById(id); return el ? el.value : ''; }
+
+/* ---------------- data helpers ---------------- */
+function customerCurrencyGross(customerId, code){
+  const a = acc(); let withdraw=0, deposit=0;
+  a.transactions.forEach(t=>{
+    if(t.customerId!==customerId || t.currency!==code) return;
+    if(t.type==='withdraw') withdraw+=t.amount; else deposit+=t.amount;
+  });
+  return { withdraw, deposit };
+}
+function customerBalances(customerId){
+  const a = acc(); const out = {}; CURRENCIES.forEach(c=> out[c.code]=0);
+  a.transactions.filter(t=>t.customerId===customerId).forEach(t=>{
+    const sign = t.type==='withdraw' ? 1 : -1;
+    out[t.currency] = (out[t.currency]||0) + sign*t.amount;
+  });
+  return out;
+}
+function currencyStats(code){
+  const a = acc(); const s = { withdraw:0, deposit:0, debt:0, credit:0 };
+  a.transactions.forEach(t=>{
+    if(t.currency!==code) return;
+    if(t.type==='withdraw') s.withdraw += t.amount; else s.deposit += t.amount;
+  });
+  s.debt = s.withdraw;
+  s.credit = s.deposit;
+  return s;
+}
+
+/* ---------------- customer actions ---------------- */
+function submitNewCustomer(e){
+  e.preventDefault();
+  const a = acc();
+  const name = (val('nc-name')||'').trim();
+  if(!name) return;
+  a.customers.push({ id:uid(), name, phone:(val('nc-phone')||'').trim(), address:(val('nc-address')||'').trim(), photo: ui.pendingPhoto || null, pinned: !!document.getElementById('nc-pinned')?.checked, createdAt:new Date().toISOString() });
+  ui.pendingPhoto = null;
+  saveDB(DB);
+  ui.showAddCustomer = false;
+  render();
+  showToast(name + ' با موفقیت ذخیره شد');
+}
+function startEditCustomer(id){ ui.editingCustomerId = id; const c=acc().customers.find(x=>x.id===id); ui.pendingEditPhoto = c ? (c.photo||null) : null; render(); }
+function submitEditCustomer(e){
+  e.preventDefault();
+  const a = acc();
+  const c = a.customers.find(x=>x.id===ui.editingCustomerId);
+  c.name = (val('ec-name')||'').trim();
+  c.phone = (val('ec-phone')||'').trim();
+  c.address = (val('ec-address')||'').trim();
+  c.photo = ui.pendingEditPhoto || null;
+  ui.pendingEditPhoto = null;
+  c.pinned = !!document.getElementById('ec-pinned')?.checked;
+  saveDB(DB);
+  ui.editingCustomerId = null;
+  render();
+  showToast(c.name + ' با موفقیت ویرایش شد');
+}
+function togglePinCustomer(id){
+  const a = acc();
+  const c = a.customers.find(x=>x.id===id);
+  if(!c) return;
+  c.pinned = !c.pinned;
+  saveDB(DB);
+  render();
+  showToast(c.name + (c.pinned ? ' پین شد' : ' از پین خارج شد'));
+}
+function requestDeleteCustomer(id){ ui.pinModalCustomerId = id; ui.pinInput=''; ui.pinError=''; render(); }
+function confirmDeleteCustomer(){
+  const a = acc();
+  if(ui.pinInput !== a.pin){ ui.pinError = 'پین اشتباه است.'; render(); return; }
+  const id = ui.pinModalCustomerId;
+  const cust = a.customers.find(c=>c.id===id);
+  const custName = cust ? cust.name : 'مشتری';
+  a.customers = a.customers.filter(c=>c.id!==id);
+  a.transactions = a.transactions.filter(t=>t.customerId!==id);
+  saveDB(DB);
+  if(ui.selectedCustomerId===id){ ui.selectedCustomerId=null; ui.screen='home'; }
+  ui.pinModalCustomerId = null;
+  render();
+  showToast(custName + ' با موفقیت حذف شد');
+}
+function openCustomer(id){
+  ui.selectedCustomerId = id; ui.custCurrency = ui.activeCurrency; ui.txType=null;
+  ui.txShowCount = 50; ui.screen='customer';
+  try { history.pushState({ page:'customer' }, ''); } catch(e){}
+  render();
+}
+function goBack(){
+  try { history.back(); } catch(e){ ui.screen='home'; render(); }
+}
+
+/* ---------------- transaction actions ---------------- */
+function selectTxType(type){ ui.txType = type; render(); }
+function submitTransaction(e){
+  e.preventDefault();
+  const a = acc();
+  const amount = Number(val('tx-amount'));
+  if(!ui.txType || !amount || amount<=0) return;
+  const jy=val('tx-jy'), jm=val('tx-jm'), jd=val('tx-jd'), hh=val('tx-hh')||'0', mm=val('tx-mm')||'0';
+  let iso;
+  try { iso = jalaliDateTimeToISO(jy,jm,jd,hh,mm); } catch(e){ iso = new Date().toISOString(); }
+  a.transactions.push({
+    id: uid(), customerId: ui.selectedCustomerId, currency: ui.custCurrency, type: ui.txType,
+    category: ui.txType==='withdraw' ? 'قرض' : 'طلب', amount, note:(val('tx-note')||'').trim(),
+    datetime: iso, createdAt: new Date().toISOString()
+  });
+  saveDB(DB);
+  ui.txType = null;
+  ui.justAddedTxId = a.transactions[a.transactions.length-1].id;
+  render();
+  showToast('تراکنش با موفقیت ثبت شد');
+  setTimeout(()=>{ ui.justAddedTxId = null; render(); }, 2200);
+}
+function startEditTx(id){ ui.editingTxId = id; render(); }
+function submitEditTx(e){
+  e.preventDefault();
+  const a = acc();
+  const t = a.transactions.find(x=>x.id===ui.editingTxId);
+  const amount = Number(val('et-amount'));
+  if(!amount || amount<=0) return;
+  t.amount = amount;
+  t.note = (val('et-note')||'').trim();
+  const jy=val('et-jy'), jm=val('et-jm'), jd=val('et-jd'), hh=val('et-hh')||'0', mm=val('et-mm')||'0';
+  try { t.datetime = jalaliDateTimeToISO(jy,jm,jd,hh,mm); } catch(e){}
+  saveDB(DB);
+  ui.editingTxId = null;
+  render();
+  showToast('تراکنش با موفقیت ویرایش شد');
+}
+function requestDeleteTx(id){ ui.confirmDeleteTxId = id; render(); }
+function cancelDeleteTx(){ ui.confirmDeleteTxId = null; render(); }
+function deleteTx(id){
+  const a = acc();
+  a.transactions = a.transactions.filter(t=>t.id!==id);
+  saveDB(DB);
+  ui.confirmDeleteTxId = null;
+  render();
+  showToast('تراکنش با موفقیت حذف شد');
+}
+
+/* ---------------- statement ---------------- */
+function downloadStatement(){
+  const a = acc();
+  const cust = a.customers.find(c=>c.id===ui.selectedCustomerId);
+  const list = a.transactions.filter(t=>t.customerId===cust.id && t.currency===ui.custCurrency)
+    .sort((x,y)=> (y.datetime||'').localeCompare(x.datetime||'') || (y.createdAt||'').localeCompare(x.createdAt||''));
+  const width = 820;
+  const contentW = width - 48;
+  const measureCanvas = document.createElement('canvas');
+  const mctx = measureCanvas.getContext('2d');
+
+  function wrapText(text, font, maxWidth){
+    mctx.font = font;
+    const words = String(text).split(' ');
+    const lines = [];
+    let cur = '';
+    for(const w of words){
+      const test = cur ? cur+' '+w : w;
+      if(mctx.measureText(test).width > maxWidth && cur){
+        lines.push(cur);
+        cur = w;
+      } else {
+        cur = test;
+      }
+    }
+    if(cur) lines.push(cur);
+    return lines;
+  }
+
+  const rowPad = 16;
+  const rows = list.map(t=>{
+    const noteLines = t.note ? wrapText('توضیح: '+t.note, '12.5px Tahoma, sans-serif', contentW) : [];
+    const lineCount = 1 + noteLines.length; // date line + note lines
+    const h = 20 + (lineCount * 18) + rowPad;
+    return { t, noteLines, h };
+  });
+
+  const headerLines = [`مشتری: ${cust.name}`, `ارز: ${curLabel(ui.custCurrency)}`];
+  if(cust.phone) headerLines.push(`تماس: ${cust.phone}`);
+  if(cust.address) headerLines.push(`محل: ${cust.address}`);
+  const headerH = 50 + headerLines.length*22 + 20;
+  const totalRowsH = rows.reduce((s,r)=>s+r.h, 0);
+  const height = headerH + Math.max(totalRowsH, 40) + 30;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.direction = 'rtl';
+  ctx.fillStyle = '#050a14'; ctx.fillRect(0,0,width,height);
+  ctx.fillStyle = '#e8edf5'; ctx.textAlign='right'; ctx.font='bold 24px Tahoma, sans-serif';
+  ctx.fillText('صورت‌حساب مشتری', width-24, 40);
+  ctx.font='14px Tahoma, sans-serif'; ctx.fillStyle='#9aabc4';
+  let hy = 68;
+  headerLines.forEach(line=>{ ctx.fillText(line, width-24, hy); hy += 22; });
+  ctx.strokeStyle='#233246'; ctx.beginPath(); ctx.moveTo(24, headerH-14); ctx.lineTo(width-24, headerH-14); ctx.stroke();
+
+  let curY = headerH;
+  rows.forEach((r,i)=>{
+    ctx.fillStyle = i%2===0 ? '#0a1120' : '#050a14';
+    ctx.fillRect(24, curY - 10, contentW, r.h);
+    ctx.fillStyle = r.t.type==='withdraw' ? '#e2685a' : '#5fbf7a';
+    ctx.font='bold 15px Tahoma, sans-serif';
+    ctx.fillText((r.t.type==='withdraw'?'برداشت':'واریز')+'  '+fmtMoney(r.t.amount, r.t.currency), width-24, curY+10);
+    ctx.fillStyle='#9aabc4'; ctx.font='12.5px Tahoma, sans-serif';
+    ctx.textAlign = 'right'; ctx.direction = 'ltr';
+    ctx.fillText(fmtDateTime(r.t.datetime), width-24, curY+30);
+    ctx.direction = 'rtl';
+    r.noteLines.forEach((line, li)=>{ ctx.fillText(line, width-24, curY+30+(li+1)*18); });
+    curY += r.h;
+  });
+  if(rows.length===0){ ctx.fillStyle='#7f93b3'; ctx.font='14px Tahoma, sans-serif'; ctx.fillText('تراکنشی ثبت نشده است.', width-24, headerH+20); }
+
+  canvas.toBlob(blob=>{
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = `statement-${cust.name}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  });
+}
+
+/* ---------------- backup export/import ---------------- */
+function exportBackup(){
+  const a = acc();
+  const payload = { username: session, exportedAt: new Date().toISOString(), account: a };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = `backup-${session}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+function triggerImport(){ document.getElementById('import-file-input').click(); }
+function handleImportFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const payload = JSON.parse(reader.result);
+      if(!payload.username || !payload.account) throw new Error('invalid');
+      DB.accounts[payload.username] = payload.account;
+      saveDB(DB);
+      ui.importOk = `اطلاعات حساب «${payload.username}» با موفقیت بازیابی شد. حالا می‌توانید با همان نام کاربری وارد شوید.`;
+      ui.importError = '';
+    } catch(e){
+      ui.importError = 'فایل پشتیبان معتبر نیست.';
+      ui.importOk = '';
+    }
+    render();
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+/* ================= RENDER ================= */
+function render(){
+  const app = document.getElementById('app');
+  if(ui.screen === 'auth') { app.innerHTML = renderAuth(); return; }
+  if(ui.screen === 'home') { app.innerHTML = renderHome(); return; }
+  if(ui.screen === 'customer') { app.innerHTML = renderCustomer(); return; }
+}
+
+function renderAuth(){
+  const isLogin = ui.authMode === 'login';
+  const remembered = getRememberedUsername();
+  return `
+    <div class="auth-wrap">
+      <div style="text-align:center;margin-bottom:22px;">
+        <div class="kicker">مدیریت حساب‌ها</div>
+        <div class="h1">${isLogin ? 'ورود' : 'ثبت‌نام'}</div>
+      </div>
+      <div class="card">
+        ${isLogin ? (remembered && DB.accounts[remembered] ? `
+          <div style="text-align:center;margin-bottom:12px;font-size:14.5px;">خوش برگشتی، <b>${escapeHtml(remembered)}</b></div>
+          <div class="form-grid">
+            <div><label class="label">پین ۴ رقمی</label><input class="input pin-input" id="li-pin" maxlength="4" inputmode="numeric" autofocus></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-blue" style="flex:1" onclick="doLogin()">ورود</button></div>
+        ` : `
+          <div class="form-grid">
+            <div><label class="label">نام کاربری</label><input class="input" id="li-username" placeholder="مثلاً ahmad_shop"></div>
+            <div><label class="label">پین ۴ رقمی</label><input class="input pin-input" id="li-pin" maxlength="4" inputmode="numeric"></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-blue" style="flex:1" onclick="doLogin()">ورود</button></div>
+        `) : `
+          <div class="form-grid">
+            <div><label class="label">نام کاربری</label><input class="input" id="su-username" placeholder="مثلاً ahmad_shop"></div>
+            <div><label class="label">پین ۴ رقمی (برای ورود و حذف مشتری)</label><input class="input pin-input" id="su-pin" maxlength="4" inputmode="numeric"></div>
+            <div><label class="label">ایمیل (اختیاری)</label><input class="input" type="email" id="su-email"></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-blue" style="flex:1" onclick="doSignup()">ساخت حساب</button></div>
+        `}
+        ${ui.authError ? `<div class="err">${escapeHtml(ui.authError)}</div>` : ''}
+      </div>
+      <div style="text-align:center;margin-top:14px;">
+        ${isLogin && remembered && DB.accounts[remembered] ? `
+          <button class="btn btn-ghost" onclick="switchUser(); render();">ورود با حساب دیگر</button>
+        ` : `
+          <button class="btn btn-ghost" onclick="ui.authMode = ui.authMode==='login'?'signup':'login'; ui.authError=''; render();">
+            ${isLogin ? 'حساب ندارید؟ ثبت‌نام کنید' : 'حساب دارید؟ وارد شوید'}
+          </button>
+        `}
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <div style="font-size:13px;color:var(--dim);margin-bottom:10px;">
+          اطلاعات هر حساب با نام کاربری همان حساب ذخیره می‌شود. برای انتقال به گوشی دیگر: نسخه پشتیبان را از حساب فعلی دانلود کنید، آن فایل را به گوشی دیگر منتقل کنید و آنجا «بازیابی» بزنید — سپس با همان نام کاربری و پین وارد شوید.
+        </div>
+        <div class="backup-row">
+          <button class="btn btn-ghost" style="flex:1" onclick="triggerImport()">بازیابی از فایل پشتیبان</button>
+        </div>
+        <input type="file" id="import-file-input" accept="application/json" style="display:none" onchange="handleImportFile(this)">
+        ${ui.importOk ? `<div class="ok">${escapeHtml(ui.importOk)}</div>` : ''}
+        ${ui.importError ? `<div class="err">${escapeHtml(ui.importError)}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderHome(){
+  const a = acc();
+  const stats = {}; CURRENCIES.forEach(c=> stats[c.code] = currencyStats(c.code));
+  let customers = a.customers.slice();
+  const q = ui.search.trim().toLowerCase();
+  if(q) customers = customers.filter(c => c.name.toLowerCase().includes(q) || (c.phone||'').includes(q));
+  if(ui.statusFilter !== 'all'){
+    customers = customers.filter(c=>{
+      const bal = customerBalances(c.id)[ui.activeCurrency] || 0;
+      return ui.statusFilter==='debtor' ? bal>0 : bal<0;
+    });
+  }
+  customers.sort((x,y)=> {
+    if (!!y.pinned !== !!x.pinned) return (y.pinned?1:0) - (x.pinned?1:0);
+    return (y.createdAt||'').localeCompare(x.createdAt||'');
+  });
+
+  return `
+    <div class="top-row centered" style="margin-top:14px;">
+      <button class="btn btn-ghost top-side-btn" onclick="logout()">خروج</button>
+      <div class="top-center">
+        <div class="h1">مدیریت حساب‌ها</div>
+        <div class="kicker">${escapeHtml(session)}</div>
+      </div>
+      <button class="btn btn-ghost top-side-btn" onclick="ui.showSettings=true; render();">⚙️</button>
+    </div>
+
+    <div class="stat-grid">
+      ${STAT_ORDER.map(code=>{
+        const c = CURRENCIES.find(x=>x.code===code);
+        const s = stats[code]; const net = s.debt - s.credit;
+        const netColor = net>0?'var(--red)':net<0?'var(--green)':'var(--text)';
+        const netText = fmt(Math.abs(net));
+        const rows = code === 'AFN' ? `
+          <div class="stat-row"><span>مانده</span><b style="color:${netColor}">${netText}</b></div>
+          <div class="stat-row credit"><span>طلب</span><b>${fmt(s.credit)}</b></div>
+          <div class="stat-row debt"><span>بدهی</span><b>${fmt(s.debt)}</b></div>
+        ` : `
+          <div class="stat-row"><span>مانده</span><b style="color:${netColor}">${netText}</b></div>
+          <div class="stat-row credit"><span>واریز</span><b>${fmt(s.deposit)}</b></div>
+          <div class="stat-row debt"><span>برداشت</span><b>${fmt(s.withdraw)}</b></div>
+        `;
+        return `
+        <div class="stat-card ${ui.activeCurrency===code?'active':''}" onclick="ui.activeCurrency='${code}';render();">
+          <div class="stat-title">${c.label}</div>
+          ${rows}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <button class="btn btn-blue" style="width:100%;margin-bottom:8px;" onclick="ui.showAddCustomer=!ui.showAddCustomer; render();">+ مشتری جدید</button>
+    <div class="search-row">
+      <input class="input" placeholder="جستجو در مشتری‌های ثبت‌شده 🔍" value="${escapeHtml(ui.search)}" oninput="ui.search=this.value; render();" onfocus="this.setSelectionRange(this.value.length,this.value.length)">
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn ${ui.statusFilter==='all'?'active':''}" onclick="ui.statusFilter='all'; render();">همه</button>
+      <button class="filter-btn creditor-btn ${ui.statusFilter==='creditor'?'active':''}" onclick="ui.statusFilter='creditor'; render();">طلبکاران</button>
+      <button class="filter-btn debtor-btn ${ui.statusFilter==='debtor'?'active':''}" onclick="ui.statusFilter='debtor'; render();">بدهکاران</button>
+    </div>
+
+    <button class="btn btn-ghost" style="width:100%;margin-bottom:12px;" onclick="ui.showBackupPanel=!ui.showBackupPanel; render();">پشتیبان‌گیری / بازیابی اطلاعات 💾</button>
+    ${ui.showBackupPanel ? `
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-size:12.5px;color:var(--dim);margin-bottom:10px;">برای انتقال اطلاعات به گوشی دیگر، نسخه پشتیبان را دانلود و روی گوشی مقصد بازیابی کنید.</div>
+      <div class="backup-row" style="margin-top:0;">
+        <button class="btn btn-blue" style="flex:1" onclick="exportBackup()">دانلود نسخه پشتیبان</button>
+        <button class="btn btn-ghost" style="flex:1" onclick="triggerImport()">بازیابی از فایل</button>
+      </div>
+      <input type="file" id="import-file-input" accept="application/json" style="display:none" onchange="handleImportFile(this)">
+      ${ui.importOk ? `<div class="ok">${escapeHtml(ui.importOk)}</div>` : ''}
+      ${ui.importError ? `<div class="err">${escapeHtml(ui.importError)}</div>` : ''}
+    </div>` : ''}
+
+    ${ui.showAddCustomer ? `
+    <form class="card add-cust-card" style="margin-bottom:16px;" onsubmit="submitNewCustomer(event)">
+      <h3 class="add-cust-title">افزودن مشتری جدید</h3>
+      <div class="form-grid">
+        <div><input class="input" id="nc-name" placeholder="نام مشتری" autofocus></div>
+        <div><input class="input" id="nc-phone" placeholder="شماره تماس (اختیاری)"></div>
+        <div><input class="input" id="nc-address" placeholder="محل (اختیاری)"></div>
+        <label class="photo-upload-row">
+          ${avatarHtml(ui.pendingPhoto ? {photo:ui.pendingPhoto} : null, 44)}
+          <span class="photo-upload-label">${ui.pendingPhoto ? 'تغییر عکس پروفایل' : '📷 افزودن عکس پروفایل (اختیاری)'}</span>
+          <input type="file" accept="image/*" style="display:none" onchange="onNewCustomerPhoto(this)">
+        </label>
+        <label class="pin-toggle-row">
+          <input type="checkbox" id="nc-pinned">
+          <span class="pin-toggle-label"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="color:var(--blue);vertical-align:-2px;margin-inline-end:4px;"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>پین شود</span>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-green" style="flex:1;">افزودن</button>
+        <button type="button" class="btn btn-neutral" style="flex:1;" onclick="ui.showAddCustomer=false; ui.pendingPhoto=null; render();">انصراف</button>
+      </div>
+    </form>` : ''}
+
+    ${customers.length===0 ? '<div class="empty">مشتری‌ای پیدا نشد.</div>' : customers.map(c=>{
+      const bals = customerBalances(c.id);
+      const txCount = a.transactions.filter(t=>t.customerId===c.id).length;
+      const balanceLines = STAT_ORDER.map(code=>{
+        const b = bals[code]||0;
+        if(b===0) return '';
+        const label = curLabel(code);
+        const cls = b>0 ? 'debt' : 'credit';
+        const text = b>0 ? fmt(b)+'+' : fmt(-b);
+        return `<div class="bal-line ${cls}"><span class="cur-label">تراز ${label}</span><b>${text}</b></div>`;
+      }).join('');
+      const contactBits = [`${fmt(txCount)} تراکنش`, c.phone, c.address].filter(Boolean).join(' · ');
+      return `
+      <div class="cust-row ${c.pinned?'is-pinned':''}">
+        <div class="cust-main" onclick="openCustomer('${c.id}')">
+          <div style="display:flex;align-items:center;gap:6px;justify-content:flex-start;">
+            <div class="cust-name">${escapeHtml(c.name)}</div>
+            ${c.pinned ? `<span class="pin-btn pinned" title="پین‌شده"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg></span>` : ''}
+          </div>
+          <div class="cust-sub">${contactBits}</div>
+          ${balanceLines ? `<div class="cust-balances-stack">${balanceLines}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+
+    ${ui.editingCustomerId ? renderEditCustomerModal() : ''}
+    ${ui.pinModalCustomerId ? renderPinModal() : ''}
+    ${ui.showSettings ? renderSettingsModal() : ''}
+  `;
+}
+
+function renderEditCustomerModal(){
+  const a = acc();
+  const c = a.customers.find(x=>x.id===ui.editingCustomerId);
+  return `
+    <div class="modal-backdrop" onclick="ui.editingCustomerId=null; render();">
+      <div class="modal-box" onclick="event.stopPropagation();">
+        <h3 style="margin-top:0;">ویرایش مشتری</h3>
+        <form onsubmit="submitEditCustomer(event)">
+          <div class="form-grid">
+            <div><label class="label">نام مشتری</label><input class="input" id="ec-name" value="${escapeHtml(c.name)}"></div>
+            <div><label class="label">شماره تماس</label><input class="input" id="ec-phone" value="${escapeHtml(c.phone||'')}"></div>
+            <div><label class="label">محل / آدرس</label><input class="input" id="ec-address" value="${escapeHtml(c.address||'')}"></div>
+            <label class="photo-upload-row">
+              ${avatarHtml(ui.pendingEditPhoto ? {photo:ui.pendingEditPhoto} : null, 44)}
+              <span class="photo-upload-label">${ui.pendingEditPhoto ? 'تغییر عکس پروفایل' : '📷 افزودن عکس پروفایل (اختیاری)'}</span>
+              <input type="file" accept="image/*" style="display:none" onchange="onEditCustomerPhoto(this)">
+            </label>
+            <label class="pin-toggle-row">
+              <input type="checkbox" id="ec-pinned" ${c.pinned?'checked':''}>
+              <span class="pin-toggle-label"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="color:var(--blue);vertical-align:-2px;margin-inline-end:4px;"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>پین شود</span>
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-green">ذخیره</button>
+            <button type="button" class="btn btn-ghost" onclick="ui.editingCustomerId=null; ui.pendingEditPhoto=null; render();">انصراف</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+function renderSettingsModal(){
+  const a = acc();
+  const hasBio = !!(a && a.biometricCredId);
+  return `
+    <div class="modal-backdrop" onclick="ui.showSettings=false; ui.settingsError=''; ui.settingsOk=''; render();">
+      <div class="modal-box" onclick="event.stopPropagation();">
+        <h3 style="margin-top:0;">تنظیمات</h3>
+
+        <div style="font-size:13px;color:var(--dim);margin-bottom:6px;">تغییر نام کاربری</div>
+        <div class="form-grid" style="margin-bottom:14px;">
+          <input class="input" id="set-username" placeholder="${escapeHtml(session)}">
+          <button class="btn btn-blue" onclick="changeUsername()">ذخیره نام کاربری</button>
+        </div>
+
+        <div style="font-size:13px;color:var(--dim);margin-bottom:6px;">تغییر پین ۴ رقمی</div>
+        <div class="form-grid" style="margin-bottom:14px;">
+          <input class="input pin-input" id="set-pin" maxlength="4" inputmode="numeric" placeholder="پین جدید">
+          <input class="input pin-input" id="set-pin-confirm" maxlength="4" inputmode="numeric" placeholder="تکرار پین جدید">
+          <button class="btn btn-blue" onclick="changePin()">ذخیره پین</button>
+        </div>
+
+        <div style="font-size:13px;color:var(--dim);margin-bottom:6px;">قفل اثرانگشت (فقط روی لینک آنلاین HTTPS)</div>
+        <div class="form-actions" style="margin-bottom:4px;">
+          ${hasBio
+            ? `<button class="btn btn-red" style="flex:1" onclick="disableBiometric()">غیرفعال‌کردن اثرانگشت</button>`
+            : `<button class="btn btn-green" style="flex:1" onclick="enableBiometric()">فعال‌کردن اثرانگشت</button>`}
+        </div>
+
+        ${ui.settingsError ? `<div class="err">${escapeHtml(ui.settingsError)}</div>` : ''}
+        ${ui.settingsOk ? `<div class="ok">${escapeHtml(ui.settingsOk)}</div>` : ''}
+
+        <div class="form-actions" style="margin-top:14px;">
+          <button class="btn btn-ghost" style="flex:1" onclick="ui.showSettings=false; ui.settingsError=''; ui.settingsOk=''; render();">بستن</button>
+        </div>
+      </div>
+    </div>`;
+}
+function renderPinModal(){
+  return `
+    <div class="modal-backdrop" onclick="ui.pinModalCustomerId=null; render();">
+      <div class="modal-box" onclick="event.stopPropagation();">
+        <h3 style="margin-top:0;color:var(--red);">حذف مشتری</h3>
+        <p style="font-size:13.5px;color:var(--dim);">برای حذف این مشتری و تمام تراکنش‌هایش، پین ۴ رقمی را وارد کنید.</p>
+        <input class="input pin-input" id="pin-input-field" maxlength="4" inputmode="numeric" value="${escapeHtml(ui.pinInput)}" oninput="ui.pinInput=this.value.replace(/\\D/g,'').slice(0,4); this.value=ui.pinInput;">
+        ${ui.pinError ? `<div class="err">${escapeHtml(ui.pinError)}</div>` : ''}
+        <div class="form-actions">
+          <button class="btn btn-red" onclick="confirmDeleteCustomer()">تأیید حذف</button>
+          <button class="btn btn-ghost" onclick="ui.pinModalCustomerId=null; render();">انصراف</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderCustomer(){
+  const a = acc();
+  const cust = a.customers.find(c=>c.id===ui.selectedCustomerId);
+  if(!cust){ ui.screen='home'; return renderHome(); }
+  const bals = customerBalances(cust.id);
+  let txList = a.transactions.filter(t=>t.customerId===cust.id && t.currency===ui.custCurrency);
+  if(ui.txTypeFilter === 'deposit') txList = txList.filter(t=>t.type==='deposit');
+  else if(ui.txTypeFilter === 'withdraw') txList = txList.filter(t=>t.type==='withdraw');
+  txList = txList.sort((x,y)=> (y.datetime||'').localeCompare(x.datetime||'') || (y.createdAt||'').localeCompare(x.createdAt||''));
+  const visible = txList.slice(0, ui.txShowCount);
+
+  const runningBalance = {};
+  { const perCurrency = {};
+    a.transactions.filter(t=>t.customerId===cust.id).slice().sort((x,y)=>(x.datetime||'').localeCompare(y.datetime||'') || (x.createdAt||'').localeCompare(y.createdAt||'')).forEach(t=>{
+      const sign = t.type==='withdraw' ? 1 : -1;
+      perCurrency[t.currency] = (perCurrency[t.currency]||0) + sign*t.amount;
+      runningBalance[t.id] = perCurrency[t.currency];
+    });
+  }
+
+  return `
+    <div class="cust-top">
+      <div class="cust-top-right">
+        <button class="back-arrow" onclick="goBack()">←</button>
+        <div class="cust-name-big">${escapeHtml(cust.name)}</div>
+        ${avatarHtml(cust, 40)}
+      </div>
+      <div class="cust-top-left">
+        <button class="icon-btn edit" onclick="startEditCustomer('${cust.id}')">ویرایش ✎</button>
+        <button class="icon-btn del" onclick="requestDeleteCustomer('${cust.id}')">حذف مشتری 🗑</button>
+      </div>
+    </div>
+    ${(cust.phone || cust.address) ? `<div class="cust-sub" style="margin-bottom:10px;">${escapeHtml(cust.phone||'')}${cust.phone&&cust.address?' · ':''}${escapeHtml(cust.address||'')}</div>` : ''}
+
+    <div class="statement-link" onclick="ui.showStatement=true; render();">مشاهده صورت‌حساب</div>
+
+    <div class="tabs">
+      ${STAT_ORDER.map(code=>{ const c = CURRENCIES.find(x=>x.code===code); return `<div class="tab ${ui.custCurrency===code?'active':''}" onclick="ui.custCurrency='${code}'; render();">${c.label}</div>`; }).join('')}
+    </div>
+
+    <div class="card cust-balances-card">
+      ${(() => {
+        const code = ui.custCurrency;
+        const cLabel = curLabel(code);
+        const gross = customerCurrencyGross(cust.id, code);
+        const net = gross.withdraw - gross.deposit;
+        const netColor = net>0?'var(--red)':net<0?'var(--green)':'var(--text)';
+        const netText = fmt(Math.abs(net));
+        const rows = code === 'AFN' ? `
+          <div class="bal-line"><span class="cur-label">مانده</span><b style="color:${netColor}">${netText}</b></div>
+          <div class="bal-line credit"><span class="cur-label">طلب</span><b>${fmt(gross.deposit)}</b></div>
+          <div class="bal-line debt"><span class="cur-label">بدهی</span><b>${fmt(gross.withdraw)}</b></div>
+        ` : `
+          <div class="bal-line"><span class="cur-label">مانده</span><b style="color:${netColor}">${netText}</b></div>
+          <div class="bal-line credit"><span class="cur-label">واریز</span><b>${fmt(gross.deposit)}</b></div>
+          <div class="bal-line debt"><span class="cur-label">برداشت</span><b>${fmt(gross.withdraw)}</b></div>
+        `;
+        return `<div class="stat-title" style="margin-bottom:10px;">${cLabel}</div>${rows}`;
+      })()}
+    </div>
+
+    <div class="tx-type-row">
+      <button class="tx-type-btn deposit ${ui.txType==='deposit'?'selected':''}" onclick="selectTxType('deposit')">واریز (طلبکار) 🟢</button>
+      <button class="tx-type-btn withdraw ${ui.txType==='withdraw'?'selected':''}" onclick="selectTxType('withdraw')">برداشت (بدهکار) 🔴</button>
+    </div>
+
+    ${ui.txType ? (() => {
+      const now = new Date();
+      const jp = getJalaliParts(now);
+      const p2 = x => String(x).padStart(2,'0');
+      return `
+    <form class="card" style="margin-bottom:18px;" onsubmit="submitTransaction(event)">
+      <div class="form-grid">
+        <div>
+          <label class="label">مبلغ (${curLabel(ui.custCurrency)})</label>
+          <input class="input" type="number" min="0" id="tx-amount" oninput="document.getElementById('tx-words').textContent = this.value ? amountWords(this.value, ui.custCurrency) : '';" autofocus>
+          <div class="words-hint" id="tx-words"></div>
+        </div>
+        <div>
+          <label class="label">تاریخ (شمسی) و ساعت</label>
+          <div style="display:flex;gap:5px;align-items:center;" dir="ltr">
+            <input class="input" type="number" id="tx-jy" value="${jp.jy}" style="flex:1.6;min-width:64px;text-align:center;" placeholder="سال">
+            <span style="color:var(--dim);">/</span>
+            <input class="input" type="number" id="tx-jm" value="${jp.jm}" min="1" max="12" style="flex:1;min-width:40px;text-align:center;" placeholder="ماه">
+            <span style="color:var(--dim);">/</span>
+            <input class="input" type="number" id="tx-jd" value="${jp.jd}" min="1" max="31" style="flex:1;min-width:40px;text-align:center;" placeholder="روز">
+            <input class="input" type="number" id="tx-hh" value="${p2(now.getHours())}" min="0" max="23" style="flex:1;min-width:40px;text-align:center;margin-inline-start:6px;" placeholder="ساعت">
+            <span style="color:var(--dim);">:</span>
+            <input class="input" type="number" id="tx-mm" value="${p2(now.getMinutes())}" min="0" max="59" style="flex:1;min-width:40px;text-align:center;" placeholder="دقیقه">
+          </div>
+        </div>
+        <div><label class="label">توضیحات (اختیاری)</label><input class="input" id="tx-note"></div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn ${ui.txType==='withdraw'?'btn-red':'btn-green'}">ثبت تراکنش</button>
+      </div>
+    </form>`;
+    })() : ''}
+
+    <div class="filter-row">
+      <button class="filter-btn ${ui.txTypeFilter==='deposit'?'active':''}" onclick="ui.txTypeFilter='deposit'; render();">طلب (طلبکار) 🟢</button>
+      <button class="filter-btn ${ui.txTypeFilter==='withdraw'?'active':''}" onclick="ui.txTypeFilter='withdraw'; render();">قرض (بدهکار) 🔴</button>
+      <button class="filter-btn ${ui.txTypeFilter==='all'?'active':''}" onclick="ui.txTypeFilter='all'; render();">همه</button>
+    </div>
+
+    <div class="section-head">
+      <h3>تراکنش‌ها (${curLabel(ui.custCurrency)})</h3>
+      <span style="font-size:12.5px;color:var(--dim);">${fmt(txList.length)} مورد</span>
+    </div>
+
+    ${visible.length===0 ? '<div class="empty">تراکنشی ثبت نشده است.</div>' : visible.map(t=>`
+      <div class="tx-row-ref ${t.type} ${ui.justAddedTxId===t.id ? 'just-added' : ''}">
+        <div class="tx-right">
+          <div class="tx-type-chip ${t.type}">${t.type==='withdraw'?'برداشت ↑':'واریز ↓'}</div>
+          <div class="tx-dotted-row"><span class="tdr-label">مبلغ</span><span class="tdr-fill"></span><span class="tdr-value ${t.type}">${fmtMoney(t.amount,t.currency)}</span></div>
+          ${(() => { const rb = runningBalance[t.id]||0; const rbText = rb===0?'۰':fmt(Math.abs(rb)); return `<div class="tx-dotted-row"><span class="tdr-label">بیلانس</span><span class="tdr-fill"></span><span class="tdr-value neutral">${rbText} ${curLabel(t.currency)}</span></div>`; })()}
+          <div class="tx-meta">🕒 ${fmtDateTime(t.datetime)}</div>
+          ${t.note ? `<div class="tx-meta">${escapeHtml(t.note)}</div>` : ''}
+          <div class="tx-links">
+            <span class="tlink edit" onclick="startEditTx('${t.id}')">ویرایش ✎</span>
+            <span class="tlink del" onclick="requestDeleteTx('${t.id}')">حذف 🗑</span>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+    ${txList.length > ui.txShowCount ? `<div style="text-align:center;margin-top:10px;"><button class="btn btn-ghost" onclick="ui.txShowCount+=50; render();">نمایش بیشتر</button></div>` : ''}
+
+    ${ui.editingTxId ? renderEditTxModal() : ''}
+    ${ui.showStatement ? renderStatementModal(cust, txList) : ''}
+    ${ui.editingCustomerId ? renderEditCustomerModal() : ''}
+    ${ui.pinModalCustomerId ? renderPinModal() : ''}
+    ${ui.confirmDeleteTxId ? renderConfirmDeleteTxModal() : ''}
+  `;
+}
+function renderConfirmDeleteTxModal(){
+  const a = acc();
+  const t = a.transactions.find(x=>x.id===ui.confirmDeleteTxId);
+  if(!t){ ui.confirmDeleteTxId=null; return ''; }
+  return `
+    <div class="modal-backdrop" onclick="cancelDeleteTx()">
+      <div class="modal-box" onclick="event.stopPropagation();">
+        <h3 style="margin-top:0;color:var(--red);">حذف تراکنش</h3>
+        <p style="font-size:13.5px;color:var(--dim);">آیا مطمئن هستید که می‌خواهید این تراکنش را حذف کنید؟</p>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="tx-amount ${t.type}" style="font-weight:800;">${t.type==='withdraw'?'برداشت':'واریز'} — ${fmtMoney(t.amount,t.currency)}</div>
+          <div class="tx-meta">${fmtDateTime(t.datetime)}${t.note ? '  '+escapeHtml(t.note) : ''}</div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-red" onclick="deleteTx('${t.id}')">بله، حذف شود</button>
+          <button class="btn btn-neutral" onclick="cancelDeleteTx()">انصراف</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderEditTxModal(){
+  const a = acc();
+  const t = a.transactions.find(x=>x.id===ui.editingTxId);
+  const d = new Date(t.datetime);
+  const jp = getJalaliParts(d);
+  const p2 = x=>String(x).padStart(2,'0');
+  return `
+    <div class="modal-backdrop" onclick="ui.editingTxId=null; render();">
+      <div class="modal-box" onclick="event.stopPropagation();">
+        <h3 style="margin-top:0;">ویرایش تراکنش</h3>
+        <form onsubmit="submitEditTx(event)">
+          <div class="form-grid">
+            <div>
+              <label class="label">مبلغ</label>
+              <input class="input" type="number" min="0" id="et-amount" value="${t.amount}" oninput="document.getElementById('et-words').textContent = amountWords(this.value, '${t.currency}');">
+              <div class="words-hint" id="et-words">${amountWords(t.amount, t.currency)}</div>
+            </div>
+            <div>
+              <label class="label">تاریخ (شمسی) و ساعت</label>
+              <div style="display:flex;gap:5px;align-items:center;" dir="ltr">
+                <input class="input" type="number" id="et-jy" value="${jp.jy}" style="flex:1.6;min-width:64px;text-align:center;" placeholder="سال">
+                <span style="color:var(--dim);">/</span>
+                <input class="input" type="number" id="et-jm" value="${jp.jm}" min="1" max="12" style="flex:1;min-width:40px;text-align:center;" placeholder="ماه">
+                <span style="color:var(--dim);">/</span>
+                <input class="input" type="number" id="et-jd" value="${jp.jd}" min="1" max="31" style="flex:1;min-width:40px;text-align:center;" placeholder="روز">
+                <input class="input" type="number" id="et-hh" value="${p2(d.getHours())}" min="0" max="23" style="flex:1;min-width:40px;text-align:center;margin-inline-start:6px;" placeholder="ساعت">
+                <span style="color:var(--dim);">:</span>
+                <input class="input" type="number" id="et-mm" value="${p2(d.getMinutes())}" min="0" max="59" style="flex:1;min-width:40px;text-align:center;" placeholder="دقیقه">
+              </div>
+            </div>
+            <div><label class="label">توضیحات</label><input class="input" id="et-note" value="${escapeHtml(t.note||'')}"></div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-green">ذخیره تغییرات</button>
+            <button type="button" class="btn btn-ghost" onclick="ui.editingTxId=null; render();">انصراف</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+function renderStatementModal(cust, txList){
+  return `
+    <div class="modal-backdrop" onclick="ui.showStatement=false; render();">
+      <div class="modal-box" onclick="event.stopPropagation();" style="max-width:520px;">
+        <h3 style="margin-top:0;">صورت‌حساب — ${escapeHtml(cust.name)}</h3>
+        <div style="max-height:320px;overflow-y:auto;margin-bottom:14px;">
+          ${txList.length===0 ? '<div class="empty">تراکنشی ثبت نشده است.</div>' : txList.map(t=>`
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+              <span style="color:${t.type==='withdraw'?'var(--red)':'var(--green)'}">${t.type==='withdraw'?'برداشت':'واریز'} ${fmtMoney(t.amount,t.currency)}</span>
+              <span style="color:var(--dim);">${fmtDateTime(t.datetime)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-blue" onclick="downloadStatement()">دانلود صورت‌حساب (تصویر)</button>
+          <button class="btn btn-ghost" onclick="ui.showStatement=false; render();">بستن</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+window.addEventListener('popstate', () => {
+  if (ui.screen === 'customer') {
+    ui.screen = 'home';
+    ui.selectedCustomerId = null;
+    render();
+  }
+});
+render();
+</script>
+</body>
+</html>
