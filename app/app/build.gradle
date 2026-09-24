@@ -1,0 +1,19 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.modiriathesabha.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.modiriathesabha.app'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {
+}
